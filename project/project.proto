@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package project;
+
+option go_package = "github.com/chimanjain/grpc-go-hack;project";
+
+service ProjectManagement {
+    rpc GetProject (ProjectId) returns (Project) {};
+
+    rpc GetProjects(ProjectId) returns (stream Project) {};
+}
+
+message ProjectId {
+    uint32 id = 1;
+}
+
+message Project {
+    uint32 id = 1;
+    string name = 2;
+    string deployId = 3;
+    string deployAt = 4;
+    uint32 noticeTotalCount = 5;
+    uint32 rejectionCount = 6;
+    uint32 fileCount = 7;
+    uint32 deployCount = 8;
+    uint32 groupResolvedCount = 9;
+    uint32 groupUnresolvedCount = 10;
+}
