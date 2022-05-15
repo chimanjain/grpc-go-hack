@@ -8,6 +8,10 @@ service ProjectManagement {
     rpc GetProject (ProjectId) returns (Project) {};
 
     rpc GetProjects(ProjectId) returns (stream Project) {};
+
+    rpc FetchProjects(stream ProjectId) returns (Projects) {};
+
+    rpc StreamProjects(stream ProjectId) returns (stream Project) {};
 }
 
 message ProjectId {
@@ -25,4 +29,8 @@ message Project {
     uint32 deployCount = 8;
     uint32 groupResolvedCount = 9;
     uint32 groupUnresolvedCount = 10;
+}
+
+message Projects {
+    repeated Project projects = 1;
 }

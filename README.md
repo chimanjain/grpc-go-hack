@@ -1,7 +1,7 @@
 
 # grpc-go-hack
 
-grpc-go-hack server and client demonstrate how to use grpc go libraries to perform unary, server streaming RPCs.
+grpc-go-hack server and client demonstrate how to use grpc go libraries to perform unary, server streaming,client streaming and bidirectional RPCs.
 
 Please refer to [gRPC Basics: Go](https://grpc.io/docs/tutorials/basic/go.html) for more information.
 

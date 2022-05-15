@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net"
@@ -21,41 +22,74 @@ type projectManagementServer struct {
 	pb.UnimplementedProjectManagementServer
 }
 
-func (s *projectManagementServer) GetProject(ctx context.Context, in *pb.ProjectId) (*pb.Project, error) {
-	return &pb.Project{
-		Id:                   in.GetId(),
-		Name:                 "Airbrake project name",
-		DeployId:             "1",
-		DeployAt:             "2022-04-26T17:37:33.638348Z",
-		NoticeTotalCount:     1,
-		RejectionCount:       1,
-		FileCount:            1,
-		DeployCount:          1,
-		GroupResolvedCount:   1,
-		GroupUnresolvedCount: 1,
-	}, nil
+func (s *projectManagementServer) GetProject(ctx context.Context, projectId *pb.ProjectId) (*pb.Project, error) {
+	projects := getTestProjects()
+	for _, project := range projects {
+		if project.GetId() == projectId.GetId() {
+			return project, nil
+		}
+	}
+	return nil, errors.New("project not found")
 }
 
 func (s *projectManagementServer) GetProjects(projectId *pb.ProjectId, stream pb.ProjectManagement_GetProjectsServer) error {
-	var projects []*pb.Project
-	projectFilePath := filepath.Join("test_data", "project_db.json")
-	// Open our jsonFile
-	projectFile, err := os.Open(projectFilePath)
-	if err != nil {
-		log.Fatalf("Failed to load projects: %v", err)
-	}
-	byteValue, _ := io.ReadAll(projectFile)
-	// defer the closing of our projectFile so that we can parse it later on
-	defer projectFile.Close()
-	if err := json.Unmarshal(byteValue, &projects); err != nil {
-		log.Fatalf("Failed to unmarshal projects: %v", err)
-	}
+	projects := getTestProjects()
 	for _, project := range projects {
-		if err := stream.Send(project); err != nil {
-			return err
+		if project.GetId() == projectId.GetId() {
+			if err := stream.Send(project); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
+}
+
+func (s *projectManagementServer) FetchProjects(stream pb.ProjectManagement_FetchProjectsServer) error {
+	testProjects := getTestProjects()
+	var IDs []uint32
+
+	for {
+		projectId, err := stream.Recv()
+		IDs = append(IDs, projectId.GetId())
+		if err == io.EOF {
+			return stream.SendAndClose(&pb.Projects{
+				Projects: filterProjects(testProjects, IDs),
+			})
+		}
+	}
+}
+
+func filterProjects(testProjects []*pb.Project, projectIDs []uint32) []*pb.Project {
+	var projects []*pb.Project
+	for _, testProject := range testProjects {
+		if contains(projectIDs, testProject.Id) {
+			projects = append(projects, testProject)
+		}
+	}
+	return projects
+}
+
+func (s *projectManagementServer) StreamProjects(stream pb.ProjectManagement_StreamProjectsServer) error {
+	testProjects := getTestProjects()
+
+	for {
+		in, err := stream.Recv()
+
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		projectID := in.GetId()
+		for _, testProject := range testProjects {
+			if testProject.GetId() == projectID {
+				if err := stream.Send(testProject); err != nil {
+					return err
+				}
+			}
+		}
+	}
 }
 
 func main() {
@@ -69,4 +103,30 @@ func main() {
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
+}
+
+func getTestProjects() []*pb.Project {
+	var projects []*pb.Project
+	projectFilePath := filepath.Join("test_data", "project_db.json")
+	// Open our jsonFile
+	projectFile, err := os.Open(projectFilePath)
+	if err != nil {
+		log.Fatalf("Failed to load projects: %v", err)
+	}
+	byteValue, _ := io.ReadAll(projectFile)
+	// defer the closing of our projectFile so that we can parse it later on
+	defer projectFile.Close()
+	if err := json.Unmarshal(byteValue, &projects); err != nil {
+		log.Fatalf("Failed to unmarshal projects: %v", err)
+	}
+	return projects
+}
+
+func contains(s []uint32, x uint32) bool {
+	for i := range s {
+		if uint32(i) == x {
+			return true
+		}
+	}
+	return false
 }

@@ -32,6 +32,10 @@ func main() {
 	printProject(p, &pb.ProjectId{Id: id})
 
 	printProjects(p, &pb.ProjectId{Id: id})
+
+	printfetchProjects(p)
+
+	printStreamProjects(p)
 }
 
 // printProject gets the project for the given projectId.
@@ -62,17 +66,67 @@ func printProjects(client pb.ProjectManagementClient, id *pb.ProjectId) {
 		if err != nil {
 			log.Fatalf("%v.GetProjects(_) = _, %v", client, err)
 		}
-		log.Printf(`Project Details:
-		id: %d
-		name: %s
-		deployId: %s
-		deployAt: %s
-		noticeTotalCount: %d
-		rejectionCount: %d
-		fileCount: %d
-		deployCount: %d
-		groupResolvedCount: %d
-		groupUnresolvedCount: %d`,
-			project.GetId(), project.GetName(), project.GetDeployId(), project.GetDeployAt(), project.GetNoticeTotalCount(), project.GetRejectionCount(), project.GetFileCount(), project.GetDeployCount(), project.GetGroupResolvedCount(), project.GetGroupUnresolvedCount())
+		log.Println(project)
 	}
+}
+
+// printfetchProjects sends a sequence of ProjectId to server and expects to get a Projects from server.
+func printfetchProjects(client pb.ProjectManagementClient) {
+	// Create a random number of random points
+	IDs := []uint32{1, 2, 3, 4}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	stream, err := client.FetchProjects(ctx)
+	if err != nil {
+		log.Fatalf("client.RecordRoute failed: %v", err)
+	}
+	for _, ID := range IDs {
+		if err := stream.Send(&pb.ProjectId{Id: ID}); err != nil {
+			log.Fatalf("client.FetchProjects: stream.Send(%v) failed: %v", ID, err)
+		}
+	}
+	reply, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("client.FetchProjects failed: %v", err)
+	}
+	log.Printf("fetch Projects summary: %v", reply)
+}
+
+// printStreamProjects receives a sequence of projects, while sending projectID.
+func printStreamProjects(client pb.ProjectManagementClient) {
+	projectIDs := []*pb.ProjectId{
+		{Id: 1},
+		{Id: 2},
+		{Id: 3},
+		{Id: 4},
+		{Id: 5},
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	stream, err := client.StreamProjects(ctx)
+	if err != nil {
+		log.Fatalf("client.RouteChat failed: %v", err)
+	}
+	waitc := make(chan struct{})
+	go func() {
+		for {
+			in, err := stream.Recv()
+			if err == io.EOF {
+				// read done.
+				close(waitc)
+				return
+			}
+			if err != nil {
+				log.Fatalf("client.RouteChat failed: %v", err)
+			}
+			log.Println(in)
+		}
+	}()
+	for _, projectID := range projectIDs {
+		if err := stream.Send(projectID); err != nil {
+			log.Fatalf("client.RouteChat: stream.Send(%v) failed: %v", projectID, err)
+		}
+	}
+	stream.CloseSend()
+	<-waitc
 }

@@ -24,6 +24,8 @@ const _ = grpc.SupportPackageIsVersion7
 type ProjectManagementClient interface {
 	GetProject(ctx context.Context, in *ProjectId, opts ...grpc.CallOption) (*Project, error)
 	GetProjects(ctx context.Context, in *ProjectId, opts ...grpc.CallOption) (ProjectManagement_GetProjectsClient, error)
+	FetchProjects(ctx context.Context, opts ...grpc.CallOption) (ProjectManagement_FetchProjectsClient, error)
+	StreamProjects(ctx context.Context, opts ...grpc.CallOption) (ProjectManagement_StreamProjectsClient, error)
 }
 
 type projectManagementClient struct {
@@ -75,12 +77,79 @@ func (x *projectManagementGetProjectsClient) Recv() (*Project, error) {
 	return m, nil
 }
 
+func (c *projectManagementClient) FetchProjects(ctx context.Context, opts ...grpc.CallOption) (ProjectManagement_FetchProjectsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ProjectManagement_ServiceDesc.Streams[1], "/project.ProjectManagement/FetchProjects", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &projectManagementFetchProjectsClient{stream}
+	return x, nil
+}
+
+type ProjectManagement_FetchProjectsClient interface {
+	Send(*ProjectId) error
+	CloseAndRecv() (*Projects, error)
+	grpc.ClientStream
+}
+
+type projectManagementFetchProjectsClient struct {
+	grpc.ClientStream
+}
+
+func (x *projectManagementFetchProjectsClient) Send(m *ProjectId) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *projectManagementFetchProjectsClient) CloseAndRecv() (*Projects, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Projects)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *projectManagementClient) StreamProjects(ctx context.Context, opts ...grpc.CallOption) (ProjectManagement_StreamProjectsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ProjectManagement_ServiceDesc.Streams[2], "/project.ProjectManagement/StreamProjects", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &projectManagementStreamProjectsClient{stream}
+	return x, nil
+}
+
+type ProjectManagement_StreamProjectsClient interface {
+	Send(*ProjectId) error
+	Recv() (*Project, error)
+	grpc.ClientStream
+}
+
+type projectManagementStreamProjectsClient struct {
+	grpc.ClientStream
+}
+
+func (x *projectManagementStreamProjectsClient) Send(m *ProjectId) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *projectManagementStreamProjectsClient) Recv() (*Project, error) {
+	m := new(Project)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ProjectManagementServer is the server API for ProjectManagement service.
 // All implementations must embed UnimplementedProjectManagementServer
 // for forward compatibility
 type ProjectManagementServer interface {
 	GetProject(context.Context, *ProjectId) (*Project, error)
 	GetProjects(*ProjectId, ProjectManagement_GetProjectsServer) error
+	FetchProjects(ProjectManagement_FetchProjectsServer) error
+	StreamProjects(ProjectManagement_StreamProjectsServer) error
 	mustEmbedUnimplementedProjectManagementServer()
 }
 
@@ -93,6 +162,12 @@ func (UnimplementedProjectManagementServer) GetProject(context.Context, *Project
 }
 func (UnimplementedProjectManagementServer) GetProjects(*ProjectId, ProjectManagement_GetProjectsServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetProjects not implemented")
+}
+func (UnimplementedProjectManagementServer) FetchProjects(ProjectManagement_FetchProjectsServer) error {
+	return status.Errorf(codes.Unimplemented, "method FetchProjects not implemented")
+}
+func (UnimplementedProjectManagementServer) StreamProjects(ProjectManagement_StreamProjectsServer) error {
+	return status.Errorf(codes.Unimplemented, "method StreamProjects not implemented")
 }
 func (UnimplementedProjectManagementServer) mustEmbedUnimplementedProjectManagementServer() {}
 
@@ -146,6 +221,58 @@ func (x *projectManagementGetProjectsServer) Send(m *Project) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ProjectManagement_FetchProjects_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ProjectManagementServer).FetchProjects(&projectManagementFetchProjectsServer{stream})
+}
+
+type ProjectManagement_FetchProjectsServer interface {
+	SendAndClose(*Projects) error
+	Recv() (*ProjectId, error)
+	grpc.ServerStream
+}
+
+type projectManagementFetchProjectsServer struct {
+	grpc.ServerStream
+}
+
+func (x *projectManagementFetchProjectsServer) SendAndClose(m *Projects) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *projectManagementFetchProjectsServer) Recv() (*ProjectId, error) {
+	m := new(ProjectId)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _ProjectManagement_StreamProjects_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ProjectManagementServer).StreamProjects(&projectManagementStreamProjectsServer{stream})
+}
+
+type ProjectManagement_StreamProjectsServer interface {
+	Send(*Project) error
+	Recv() (*ProjectId, error)
+	grpc.ServerStream
+}
+
+type projectManagementStreamProjectsServer struct {
+	grpc.ServerStream
+}
+
+func (x *projectManagementStreamProjectsServer) Send(m *Project) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *projectManagementStreamProjectsServer) Recv() (*ProjectId, error) {
+	m := new(ProjectId)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ProjectManagement_ServiceDesc is the grpc.ServiceDesc for ProjectManagement service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -163,6 +290,17 @@ var ProjectManagement_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "GetProjects",
 			Handler:       _ProjectManagement_GetProjects_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "FetchProjects",
+			Handler:       _ProjectManagement_FetchProjects_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "StreamProjects",
+			Handler:       _ProjectManagement_StreamProjects_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "project/project.proto",
