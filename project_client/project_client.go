@@ -53,7 +53,6 @@ func printProject(client pb.ProjectManagementClient, id *pb.ProjectId) {
 func printProjects(client pb.ProjectManagementClient, id *pb.ProjectId) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client.GetProjects(ctx, id)
 	stream, err := client.GetProjects(ctx, id)
 	if err != nil {
 		log.Fatalf("%v.GetProjects(_) = _, %v", client, err)
@@ -127,6 +126,6 @@ func printStreamProjects(client pb.ProjectManagementClient) {
 			log.Fatalf("client.RouteChat: stream.Send(%v) failed: %v", projectID, err)
 		}
 	}
-	stream.CloseSend()
+	_ = stream.CloseSend()
 	<-waitc
 }
