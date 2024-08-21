@@ -19,8 +19,7 @@ func main() {
 
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	opts = append(opts, grpc.WithBlock())
-	conn, err := grpc.Dial(address, opts...)
+	conn, err := grpc.DialContext(context.Background(), address, opts...)
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
