@@ -29,10 +29,10 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProjectManagementClient interface {
-	GetProject(ctx context.Context, in *ProjectId, opts ...grpc.CallOption) (*Project, error)
-	GetProjects(ctx context.Context, in *ProjectId, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Project], error)
-	FetchProjects(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[ProjectId, Projects], error)
-	StreamProjects(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ProjectId, Project], error)
+	GetProject(ctx context.Context, in *ProjectID, opts ...grpc.CallOption) (*Project, error)
+	GetProjects(ctx context.Context, in *ProjectID, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Project], error)
+	FetchProjects(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[ProjectID, Projects], error)
+	StreamProjects(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ProjectID, Project], error)
 }
 
 type projectManagementClient struct {
@@ -43,7 +43,7 @@ func NewProjectManagementClient(cc grpc.ClientConnInterface) ProjectManagementCl
 	return &projectManagementClient{cc}
 }
 
-func (c *projectManagementClient) GetProject(ctx context.Context, in *ProjectId, opts ...grpc.CallOption) (*Project, error) {
+func (c *projectManagementClient) GetProject(ctx context.Context, in *ProjectID, opts ...grpc.CallOption) (*Project, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Project)
 	err := c.cc.Invoke(ctx, ProjectManagement_GetProject_FullMethodName, in, out, cOpts...)
@@ -53,13 +53,13 @@ func (c *projectManagementClient) GetProject(ctx context.Context, in *ProjectId,
 	return out, nil
 }
 
-func (c *projectManagementClient) GetProjects(ctx context.Context, in *ProjectId, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Project], error) {
+func (c *projectManagementClient) GetProjects(ctx context.Context, in *ProjectID, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Project], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &ProjectManagement_ServiceDesc.Streams[0], ProjectManagement_GetProjects_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[ProjectId, Project]{ClientStream: stream}
+	x := &grpc.GenericClientStream[ProjectID, Project]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -72,40 +72,40 @@ func (c *projectManagementClient) GetProjects(ctx context.Context, in *ProjectId
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ProjectManagement_GetProjectsClient = grpc.ServerStreamingClient[Project]
 
-func (c *projectManagementClient) FetchProjects(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[ProjectId, Projects], error) {
+func (c *projectManagementClient) FetchProjects(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[ProjectID, Projects], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &ProjectManagement_ServiceDesc.Streams[1], ProjectManagement_FetchProjects_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[ProjectId, Projects]{ClientStream: stream}
+	x := &grpc.GenericClientStream[ProjectID, Projects]{ClientStream: stream}
 	return x, nil
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ProjectManagement_FetchProjectsClient = grpc.ClientStreamingClient[ProjectId, Projects]
+type ProjectManagement_FetchProjectsClient = grpc.ClientStreamingClient[ProjectID, Projects]
 
-func (c *projectManagementClient) StreamProjects(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ProjectId, Project], error) {
+func (c *projectManagementClient) StreamProjects(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ProjectID, Project], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &ProjectManagement_ServiceDesc.Streams[2], ProjectManagement_StreamProjects_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[ProjectId, Project]{ClientStream: stream}
+	x := &grpc.GenericClientStream[ProjectID, Project]{ClientStream: stream}
 	return x, nil
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ProjectManagement_StreamProjectsClient = grpc.BidiStreamingClient[ProjectId, Project]
+type ProjectManagement_StreamProjectsClient = grpc.BidiStreamingClient[ProjectID, Project]
 
 // ProjectManagementServer is the server API for ProjectManagement service.
 // All implementations must embed UnimplementedProjectManagementServer
 // for forward compatibility.
 type ProjectManagementServer interface {
-	GetProject(context.Context, *ProjectId) (*Project, error)
-	GetProjects(*ProjectId, grpc.ServerStreamingServer[Project]) error
-	FetchProjects(grpc.ClientStreamingServer[ProjectId, Projects]) error
-	StreamProjects(grpc.BidiStreamingServer[ProjectId, Project]) error
+	GetProject(context.Context, *ProjectID) (*Project, error)
+	GetProjects(*ProjectID, grpc.ServerStreamingServer[Project]) error
+	FetchProjects(grpc.ClientStreamingServer[ProjectID, Projects]) error
+	StreamProjects(grpc.BidiStreamingServer[ProjectID, Project]) error
 	mustEmbedUnimplementedProjectManagementServer()
 }
 
@@ -116,16 +116,16 @@ type ProjectManagementServer interface {
 // pointer dereference when methods are called.
 type UnimplementedProjectManagementServer struct{}
 
-func (UnimplementedProjectManagementServer) GetProject(context.Context, *ProjectId) (*Project, error) {
+func (UnimplementedProjectManagementServer) GetProject(context.Context, *ProjectID) (*Project, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProject not implemented")
 }
-func (UnimplementedProjectManagementServer) GetProjects(*ProjectId, grpc.ServerStreamingServer[Project]) error {
+func (UnimplementedProjectManagementServer) GetProjects(*ProjectID, grpc.ServerStreamingServer[Project]) error {
 	return status.Errorf(codes.Unimplemented, "method GetProjects not implemented")
 }
-func (UnimplementedProjectManagementServer) FetchProjects(grpc.ClientStreamingServer[ProjectId, Projects]) error {
+func (UnimplementedProjectManagementServer) FetchProjects(grpc.ClientStreamingServer[ProjectID, Projects]) error {
 	return status.Errorf(codes.Unimplemented, "method FetchProjects not implemented")
 }
-func (UnimplementedProjectManagementServer) StreamProjects(grpc.BidiStreamingServer[ProjectId, Project]) error {
+func (UnimplementedProjectManagementServer) StreamProjects(grpc.BidiStreamingServer[ProjectID, Project]) error {
 	return status.Errorf(codes.Unimplemented, "method StreamProjects not implemented")
 }
 func (UnimplementedProjectManagementServer) mustEmbedUnimplementedProjectManagementServer() {}
@@ -150,7 +150,7 @@ func RegisterProjectManagementServer(s grpc.ServiceRegistrar, srv ProjectManagem
 }
 
 func _ProjectManagement_GetProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ProjectId)
+	in := new(ProjectID)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -162,35 +162,35 @@ func _ProjectManagement_GetProject_Handler(srv interface{}, ctx context.Context,
 		FullMethod: ProjectManagement_GetProject_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProjectManagementServer).GetProject(ctx, req.(*ProjectId))
+		return srv.(ProjectManagementServer).GetProject(ctx, req.(*ProjectID))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _ProjectManagement_GetProjects_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(ProjectId)
+	m := new(ProjectID)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(ProjectManagementServer).GetProjects(m, &grpc.GenericServerStream[ProjectId, Project]{ServerStream: stream})
+	return srv.(ProjectManagementServer).GetProjects(m, &grpc.GenericServerStream[ProjectID, Project]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ProjectManagement_GetProjectsServer = grpc.ServerStreamingServer[Project]
 
 func _ProjectManagement_FetchProjects_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(ProjectManagementServer).FetchProjects(&grpc.GenericServerStream[ProjectId, Projects]{ServerStream: stream})
+	return srv.(ProjectManagementServer).FetchProjects(&grpc.GenericServerStream[ProjectID, Projects]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ProjectManagement_FetchProjectsServer = grpc.ClientStreamingServer[ProjectId, Projects]
+type ProjectManagement_FetchProjectsServer = grpc.ClientStreamingServer[ProjectID, Projects]
 
 func _ProjectManagement_StreamProjects_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(ProjectManagementServer).StreamProjects(&grpc.GenericServerStream[ProjectId, Project]{ServerStream: stream})
+	return srv.(ProjectManagementServer).StreamProjects(&grpc.GenericServerStream[ProjectID, Project]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ProjectManagement_StreamProjectsServer = grpc.BidiStreamingServer[ProjectId, Project]
+type ProjectManagement_StreamProjectsServer = grpc.BidiStreamingServer[ProjectID, Project]
 
 // ProjectManagement_ServiceDesc is the grpc.ServiceDesc for ProjectManagement service.
 // It's only intended for direct use with grpc.RegisterService,

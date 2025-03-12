@@ -5,16 +5,16 @@ package project;
 option go_package = "github.com/chimanjain/grpc-go-hack;project";
 
 service ProjectManagement {
-    rpc GetProject (ProjectId) returns (Project) {};
+    rpc GetProject (ProjectID) returns (Project) {};
 
-    rpc GetProjects(ProjectId) returns (stream Project) {};
+    rpc GetProjects(ProjectID) returns (stream Project) {};
 
-    rpc FetchProjects(stream ProjectId) returns (Projects) {};
+    rpc FetchProjects(stream ProjectID) returns (Projects) {};
 
-    rpc StreamProjects(stream ProjectId) returns (stream Project) {};
+    rpc StreamProjects(stream ProjectID) returns (stream Project) {};
 }
 
-message ProjectId {
+message ProjectID {
     uint32 id = 1;
 }
 

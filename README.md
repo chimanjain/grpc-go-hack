@@ -4,7 +4,7 @@ grpc-go-hack server and client demonstrate how to use grpc go libraries to perfo
 
 Please refer to [gRPC Basics: Go](https://grpc.io/docs/tutorials/basic/go.html) for more information.
 
-See the definition of the project service in `project/project.proto`. The definition is architectured against [Airbrake-Projects](https://airbrake.io/docs/api/#list-projects-v4).
+See the definition of the project service in `project/project.proto`. The definition is architectured against [Airbrake-Projects](https://docs.airbrake.io/docs/devops-tools/api/#list-projects-v4).
 
 ## Run the code
 

@@ -22,20 +22,20 @@ type projectManagementServer struct {
 	pb.UnimplementedProjectManagementServer
 }
 
-func (s *projectManagementServer) GetProject(ctx context.Context, projectId *pb.ProjectId) (*pb.Project, error) {
+func (s *projectManagementServer) GetProject(ctx context.Context, projectID *pb.ProjectID) (*pb.Project, error) {
 	projects := getTestProjects()
 	for _, project := range projects {
-		if project.GetId() == projectId.GetId() {
+		if project.GetId() == projectID.GetId() {
 			return project, nil
 		}
 	}
 	return nil, errors.New("project not found")
 }
 
-func (s *projectManagementServer) GetProjects(projectId *pb.ProjectId, stream pb.ProjectManagement_GetProjectsServer) error {
+func (s *projectManagementServer) GetProjects(projectID *pb.ProjectID, stream pb.ProjectManagement_GetProjectsServer) error {
 	projects := getTestProjects()
 	for _, project := range projects {
-		if project.GetId() == projectId.GetId() {
+		if project.GetId() == projectID.GetId() {
 			if err := stream.Send(project); err != nil {
 				return err
 			}
@@ -49,8 +49,8 @@ func (s *projectManagementServer) FetchProjects(stream pb.ProjectManagement_Fetc
 	var IDs []uint32
 
 	for {
-		projectId, err := stream.Recv()
-		IDs = append(IDs, projectId.GetId())
+		projectID, err := stream.Recv()
+		IDs = append(IDs, projectID.GetId())
 		if err == io.EOF {
 			return stream.SendAndClose(&pb.Projects{
 				Projects: filterProjects(testProjects, IDs),
@@ -95,13 +95,13 @@ func (s *projectManagementServer) StreamProjects(stream pb.ProjectManagement_Str
 func main() {
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Printf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
 	pb.RegisterProjectManagementServer(s, &projectManagementServer{})
 	log.Printf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		log.Printf("failed to serve: %v", err)
 	}
 }
 
@@ -111,13 +111,13 @@ func getTestProjects() []*pb.Project {
 	// Open our jsonFile
 	projectFile, err := os.Open(projectFilePath)
 	if err != nil {
-		log.Fatalf("Failed to load projects: %v", err)
+		log.Printf("Failed to load projects: %v", err)
 	}
 	byteValue, _ := io.ReadAll(projectFile)
 	// defer the closing of our projectFile so that we can parse it later on
 	defer projectFile.Close()
 	if err := json.Unmarshal(byteValue, &projects); err != nil {
-		log.Fatalf("Failed to unmarshal projects: %v", err)
+		log.Printf("Failed to unmarshal projects: %v", err)
 	}
 	return projects
 }
