@@ -36,7 +36,7 @@ func main() {
 	printStreamProjects(p)
 }
 
-// printProject gets the project for the given projectId.
+// printProject gets the project for the given ProjectID.
 func printProject(client pb.ProjectManagementClient, id *pb.ProjectID) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -47,7 +47,7 @@ func printProject(client pb.ProjectManagementClient, id *pb.ProjectID) {
 	log.Println(project)
 }
 
-// printProjects lists all the projects within the given projectId.
+// printProjects lists all the projects within the given ProjectID.
 func printProjects(client pb.ProjectManagementClient, id *pb.ProjectID) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

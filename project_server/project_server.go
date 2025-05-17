@@ -22,7 +22,7 @@ type projectManagementServer struct {
 	pb.UnimplementedProjectManagementServer
 }
 
-func (s *projectManagementServer) GetProject(ctx context.Context, projectID *pb.ProjectID) (*pb.Project, error) {
+func (s *projectManagementServer) GetProject(_ context.Context, projectID *pb.ProjectID) (*pb.Project, error) {
 	projects := getTestProjects()
 	for _, project := range projects {
 		if project.GetId() == projectID.GetId() {
