@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	port = ":50051"
+	port = "127.0.0.1:50051"
 )
 
 type projectManagementServer struct {
